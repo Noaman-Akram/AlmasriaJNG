@@ -1,0 +1,133 @@
+.salah{
+    margin-left: 300px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: space-between;
+    padding: 7rem 2rem 2rem 4rem;
+    transition: margin-left 0.2s;
+}
+.sidebar{
+    margin-left: 300px;
+}
+.sidebar.active {
+    margin-left: 100px; /* Slide-in effect */
+}
+
+
+
+.sidebar-act, .p-drawer-righ, .p-drawer {
+    min-width: none !important;
+    width: 65rem !important;
+    max-width: 65rem !important;
+}
+
+
+:host ::ng-deep.sidebar-act {
+    width: 55rem !important;
+    max-width: 55rem !important;
+    min-width: 55rem !important;
+  }
+
+
+.p-datatable-header {
+    background-color: rgb(220 53 69)!important;
+}
+
+[_nghost-ng-c278789824] .pi-filter-slash {
+    color: #ed8989;
+}
+:host ::ng-deep .p-datatable .p-datatable-header {
+    background-color: rgb(220, 53, 69);
+    padding: 0.75rem;
+    border-radius: 6px 6px 0 0;
+}
+/* Add these styles to your CSS file to make all text black */
+:host ::ng-deep .p-datatable .p-inputtext{
+    background-color: white;
+    color: black;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+    background-color: white;
+    color: black;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+    background-color: white;
+    color: black;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    color: black;
+}
+
+:host ::ng-deep .p-paginator {
+    background-color: white;
+    color: black;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+    color: black;
+}
+
+:host ::ng-deep .p-dropdown-label, 
+:host ::ng-deep .p-multiselect-label,
+:host ::ng-deep .p-inputtext {
+    color: black;
+}
+
+:host ::ng-deep .p-column-filter-menu-button,
+:host ::ng-deep .pi {
+    color: black;
+}
+
+/* For the card container */
+.card {
+    background-color: white;
+    color: black;
+}
+
+/* For any icons that might need color adjustment */
+:host ::ng-deep .pi-search,
+:host ::ng-deep .pi-filter-slash {
+    color: black;
+}
+
+/* For dropdown items */
+:host ::ng-deep .p-dropdown-item,
+:host ::ng-deep .p-multiselect-item {
+    color: black;
+}
+/* Style for the Clear button */
+:host ::ng-deep .p-datatable .p-datatable-header .p-button.p-button-outlined {
+    background-color: white;
+    border-color: white;
+    color: black;
+}
+
+/* Hover state for the button */
+:host ::ng-deep .p-datatable .p-datatable-header .p-button.p-button-outlined:hover {
+    background-color: #f8f9fa; /* Slightly different white on hover */
+    border-color: #e9ecef;
+}
+
+/* Style for the filter-slash icon in the button */
+:host ::ng-deep .p-datatable .p-datatable-header .p-button.p-button-outlined .pi-filter-slash {
+    color: black;
+}
+
+/* make reactive form fields blend into your white-card background */
+.transparent-input .p-inputtext,
+.transparent-input .p-dropdown,
+.transparent-input input,
+.transparent-input .p-inputnumber-input {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.p-inputtext{
+    background-color: transparent !important; 
+    color: black;
+    border: 1px solid #ced4da;
+}

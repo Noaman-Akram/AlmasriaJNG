@@ -1,0 +1,410 @@
+<div [style.margin-left.px]="updateMargin()" class="salah bg-body-tertiary">
+  <!-- ─────────── TOP BAR ─────────── -->
+  <div class="d-flex align-items-center justify-content-between mb-2 shadow-sm p-3 bg-white rounded-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <i class="pi pi-table text-primary fs-4"></i>
+      <h2 class="fs-4 fw-bold m-0">عروض السعر / Quotations
+        <small class="text-secondary">({{ orders?.length || 0 }})</small>
+      </h2>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <!-- global search & refresh -->
+      <p-iconfield iconPosition="left" style="background:transparent;border:1px solid #ced4da;border-radius:4px;padding:0 .5rem;min-width:220px;">
+        <p-inputicon><i class="pi pi-search text-muted"></i></p-inputicon>
+        <input pInputText type="text"
+               placeholder="Search…"
+               style="border:none;background:transparent;color:#495057"
+               (input)="dt1.filterGlobal($event.target.value,'contains')" />
+      </p-iconfield>
+      <p-button icon="pi pi-filter-slash"
+                class="p-button-text text-danger"
+                (click)="clear(dt1)"
+                tooltip="Clear filters"></p-button>
+      <p-button icon="pi pi-refresh"
+                class="p-button-text text-primary"
+                (click)="loadOrders()"
+                tooltip="Reload"></p-button>
+    </div>
+  </div>
+
+  <!-- ─────────── KPI TAGS ─────────── -->
+  <div class="d-flex gap-3 flex-wrap mb-2">
+    <p-tag style="color:white"
+           [value]="'Avg Price : ' + (averagePrice | currency:'USD')"
+           severity="secondary"></p-tag>
+  </div>
+
+  <!-- ─────────── ORDERS TABLE ─────────── -->
+  <div class="card">
+    <p-table #dt1
+             [value]="orders"
+             dataKey="id"
+             [rows]="25"
+             [rowsPerPageOptions]="[25,50,100]"
+             [paginator]="true"
+             [responsiveLayout]="'scroll'"
+             [loading]="loading"
+             [globalFilterFields]="['customer_name','address','order_status']"
+             [sortMode]="'multiple'"
+             [multiSortMeta]="sortMeta"
+             class="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="id" style="width:5rem">
+            ID <p-sortIcon field="id"></p-sortIcon>
+          </th>
+          <th pSortableColumn="customer_name" style="min-width:14rem">
+            Customer <p-sortIcon field="customer_name"></p-sortIcon>
+          </th>
+          <th pSortableColumn="address" style="min-width:14rem">
+            Address <p-sortIcon field="address"></p-sortIcon>
+          </th>
+          <th pSortableColumn="order_status" style="min-width:9rem">
+            Status <p-sortIcon field="order_status"></p-sortIcon>
+          </th>
+          <th pSortableColumn="order_price" style="min-width:8rem">
+            Price <p-sortIcon field="order_price"></p-sortIcon>
+          </th>
+          <th pSortableColumn="order_cost" style="min-width:8rem">
+            Cost <p-sortIcon field="order_cost"></p-sortIcon>
+          </th>
+          <th pSortableColumn="work_types" style="min-width:8rem">
+            Type <p-sortIcon field="work_types"></p-sortIcon>
+          </th>
+          <th pSortableColumn="created_at" style="min-width:10rem">
+            Created <p-sortIcon field="created_at"></p-sortIcon>
+          </th>
+          <th style="width:4rem; text-align:center">✦</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-order>
+        <tr [ngClass]="rowClass(order)">
+          <td>{{ order.id }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td>{{ order.address }}</td>
+          <td>
+            <p-tag [value]="order.order_status"
+                   [severity]="getSeverity(order.order_status)"></p-tag>
+          </td>
+          <td>{{ order.order_price | currency:'USD':'symbol' }}</td>
+          <td>{{ order.order_cost  | currency:'USD':'symbol' }}</td>
+          <td>{{ order.work_types }}</td>
+          <td>{{ order.created_at | date:'mediumDate' }}</td>
+          <td class="text-center">
+            <button type="button"
+                    pButton pRipple
+                    icon="pi pi-eye"
+                    class="p-button-text p-button-sm"
+                    (click)="viewOrderDetails(order)"></button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <tr class="fw-bold">
+          <td colspan="4" class="text-end">Totals:</td>
+          <td>{{ totalPrice | currency:'USD':'symbol' }}</td>
+          <td>{{ totalCost  | currency:'USD':'symbol' }}</td>
+          <td colspan="3"></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- ─────────── STATUS CARDS ─────────── -->
+  <div class="row g-3 mt-3">
+    <div class="col-12 col-sm-6 col-md-4" *ngFor="let s of statusSummary">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center py-3">
+          <h6 class="card-title mb-1">{{ s.label }}</h6>
+          <p class="mb-0 fw-semibold">{{ s.count }} orders</p>
+          <small class="text-muted">{{ s.sum | currency:'USD' }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- ─────────── SIDE PANEL ─────────── -->
+<p-sidebar [(visible)]="isDetailSidebarVisible"
+           position="right"
+           [dismissible]="false"
+           [modal]="true"
+           styleClass="shadow-4 sidebar-act"
+           (onHide)="closeDetailSidebar()">
+
+  <!-- Header -->
+  <ng-template pTemplate="header">
+    <div class="d-flex align-items-center gap-2">
+      <h3 class="m-0">📝 Order #{{ selectedOrder?.id }}</h3>
+      <p-tag [value]="selectedOrder?.order_status" [severity]="getSeverity(selectedOrder?.order_status)"></p-tag>
+    </div>
+  </ng-template>
+
+  <!-- Content -->
+  <ng-template pTemplate="content">
+
+    <!-- VIEW MODE -->
+ <div *ngIf="selectedOrder && !isEditing" class="d-flex flex-column gap-3">
+
+<!-- Highlighted Order Code and Created At at the top -->
+<div class="d-flex flex-wrap gap-3 mb-4">
+
+  <!-- Order Code Box -->
+  <div class="flex-grow-1 p-3 bg-primary text-white border-round shadow-2">
+    <div class="small">Order Code</div>
+    <div class="fw-bold fs-5">{{ selectedOrder.code || '—' }}</div>
+  </div>
+
+  <!-- Created At Box -->
+  <div class="flex-grow-1 p-3 bg-success text-white border-round shadow-2">
+    <div class="small">Created At</div>
+    <div class="fw-bold fs-6">{{ selectedOrder.created_at | date:'medium' }}</div>
+  </div>
+
+</div>
+
+
+  <!-- Customer Information -->
+  <div class="card mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+      <i class="pi pi-user me-2 text-primary"></i>
+      <span class="fw-bold">Customer Information</span>
+    </div>
+    <div class="card-body small">
+      <div class="grid">
+        <div class="field col-12 md:col-6"><strong>Full Name:</strong> {{ selectedOrder.customer_name || '—' }}</div>
+        <div class="field col-12 md:col-6"><strong>Company:</strong> {{ selectedOrder.company || '—' }}</div>
+        <div class="field col-12 md:col-6"><strong>City:</strong> {{ selectedOrder.address?.split(',')[0] || '—' }}</div>
+        <div class="field col-12 md:col-6"><strong>Address Details:</strong> {{ selectedOrder.address?.split(',').slice(1).join(', ') || '—' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Details -->
+  <div class="card mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+      <i class="pi pi-shopping-cart me-2 text-primary"></i>
+      <span class="fw-bold">Order Details</span>
+    </div>
+    <div class="card-body small">
+      <div class="grid">
+        <div class="field col-12 md:col-6"><strong>Work Types:</strong> {{ selectedOrder.work_types }}</div>
+        <div class="field col-12 md:col-6"><strong>Status:</strong> {{ selectedOrder.order_status }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial Information -->
+  <div class="card mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+      <i class="pi pi-dollar me-2 text-primary"></i>
+      <span class="fw-bold">Financial Information</span>
+    </div>
+    <div class="card-body small">
+      <div class="grid">
+        <div class="field col-12 md:col-6"><strong>Order Price:</strong> {{ selectedOrder.order_price | currency:'USD' }}</div>
+        <div class="field col-12 md:col-6"><strong>Order Cost:</strong> {{ selectedOrder.order_cost | currency:'USD' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Measurements -->
+  <div class="card mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+      <i class="pi pi-ruler me-2 text-primary"></i>
+      <span class="fw-bold">Measurements</span>
+    </div>
+    <div class="card-body p-0">
+      <p-table [value]="measurements" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Unit Cost</th>
+            <th>Total Cost</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-m>
+          <tr>
+            <td>{{ m.material_type }}</td>
+            <td>{{ m.material_name }}</td>
+            <td>{{ m.quantity }} {{ m.unit }}</td>
+            <td>{{ m.cost | currency:'USD':'symbol' }}</td>
+            <td>{{ m.total_cost | currency:'USD':'symbol' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center text-secondary">No measurements recorded for this order.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+</div>
+
+
+    <!-- EDIT MODE -->
+    <div *ngIf="isEditing" class="order-editor">
+      <form [formGroup]="orderForm" class="p-fluid" (ngSubmit)="onSaveEdit()">
+        
+<!-- Customer Information (Edit Mode) -->
+<div class="card mb-4">
+  <div class="card-header bg-light d-flex align-items-center">
+    <i class="pi pi-user me-2 text-primary"></i>
+    <span class="fw-bold">Customer Information</span>
+  </div>
+  <div class="card-body">
+    <div class="grid">
+      <div class="field col-12 md:col-6">
+        <label>Full Name</label>
+        <input pInputText formControlName="customer_name" class="p-inputtext-sm w-100" placeholder="Enter full name">
+      </div>
+
+     <div class="field col-12 md:col-6">
+  <div class="flex align-items-center gap-2 mb-2">
+    <p-checkbox 
+      formControlName="hasCompany"
+      binary="true"
+      inputId="isCompanyCheckbox">
+    </p-checkbox>
+    <label for="isCompanyCheckbox" class="mb-0">Is Company?</label>
+  </div>
+
+  <!-- Company input shown only when hasCompany is true -->
+  <div *ngIf="orderForm.get('hasCompany')?.value">
+    <label>Company Name</label>
+    <input 
+      pInputText 
+      formControlName="company" 
+      class="p-inputtext-sm w-100" 
+      placeholder="Enter company name">
+  </div>
+</div>
+
+      
+
+      <div class="field col-12 md:col-6">
+        <label>City</label>
+        <p-select [options]="cities" formControlName="city" optionLabel="label" class="w-100 p-inputtext-sm" placeholder="Select City"></p-select>
+      </div>
+
+      <div class="field col-12 md:col-6">
+        <label>Address Details</label>
+        <input pInputText formControlName="address_details" class="p-inputtext-sm w-100" placeholder="Enter address details">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        <!-- Order Details -->
+        <div class="card mb-4">
+          <div class="card-header bg-light d-flex align-items-center">
+            <i class="pi pi-shopping-cart me-2 text-primary"></i>
+            <span class="fw-bold">Order Details</span>
+          </div>
+          <div class="card-body">
+            <div class="grid">
+              <div class="field col-12 md:col-6">
+                <label>Order Code</label>
+                <input pInputText formControlName="code">
+              </div>
+  
+              
+              <div class="field col-12 md:col-6">
+                <label>Work Types</label>
+                <p-multiSelect 
+                  [options]="workTypes"
+                  formControlName="work_types"
+                  optionLabel="name"
+                  placeholder="Select Services"
+                  display="chip"
+                  class="w-100">
+                </p-multiSelect>
+              </div>
+              
+              <div class="field col-12 md:col-6">
+                <label>Status</label>
+                <p-select [options]="statuses" formControlName="order_status" optionLabel="label"></p-select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Information -->
+        <div class="card mb-4">
+          <div class="card-header bg-light d-flex align-items-center">
+            <i class="pi pi-dollar me-2 text-primary"></i>
+            <span class="fw-bold">Financial Information</span>
+          </div>
+          <div class="card-body">
+            <div class="grid">
+              <div class="field col-12 md:col-6">
+                <label>Order Price</label>
+                <p-inputNumber formControlName="order_price" mode="currency" currency="USD"></p-inputNumber>
+              </div>
+              <div class="field col-12 md:col-6">
+                <label>Order Cost</label>
+                <p-inputNumber formControlName="order_cost" mode="currency" currency="USD"></p-inputNumber>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Measurements (Already handled separately) -->
+        <div class="card mb-4">
+          <div class="card-header bg-light d-flex align-items-center">
+            <i class="pi pi-ruler me-2 text-primary"></i>
+            <span class="fw-bold">Measurements</span>
+            <button pButton type="button" icon="pi pi-plus" class="p-button-sm ml-auto" (click)="addMeasurement()" label="Add Measurement"></button>
+          </div>
+          <div class="card-body" formArrayName="measurements">
+            <div *ngFor="let m of measurementFormArray.controls; let i = index" [formGroupName]="i" class="p-3 border-round mb-3">
+              <div class="grid">
+                <div class="field col-12 md:col-3">
+                  <input pInputText formControlName="material_type" placeholder="Material Type">
+                </div>
+                <div class="field col-12 md:col-3">
+                  <input pInputText formControlName="material_name" placeholder="Material Name">
+                </div>
+                <div class="field col-12 md:col-2">
+                  <p-select [options]="units" formControlName="unit" optionLabel="label"></p-select>
+                </div>
+                <div class="field col-12 md:col-2">
+                  <p-inputNumber formControlName="quantity" [min]="1"></p-inputNumber>
+                </div>
+                <div class="field col-12 md:col-2">
+                  <p-inputNumber formControlName="cost" mode="currency" currency="USD"></p-inputNumber>
+                </div>
+                <div class="col-12 md:col-1 flex align-items-end justify-content-end">
+                  <button pButton icon="pi pi-trash" class="p-button-danger p-button-text" (click)="removeMeasurement(i)" *ngIf="measurementFormArray.length > 1"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-3 mt-4">
+          <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="onCancelEdit()"></button>
+          <button pButton type="submit" label="Save Changes" class="p-button-primary" [disabled]="orderForm.invalid"></button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <ng-container *ngIf="!isEditing">
+        <button pButton type="button" icon="pi pi-pencil" label="Edit" class="p-button-primary p-button-sm" (click)="startEditing()"></button>
+        <button pButton type="button" icon="pi pi-times" label="Close" class="p-button-secondary p-button-sm" (click)="closeDetailSidebar()"></button>
+      </ng-container>
+    </div>
+
+  </ng-template>
+</p-sidebar>
+
+</div>
