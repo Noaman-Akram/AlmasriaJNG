@@ -1,5 +1,7 @@
 package com.example.demo.model;
 
+import java.sql.Date;
+
 //Columns: id, name, address, created_at, phone_number, company, paid_total, to_be_paid
 import jakarta.persistence.*;
 

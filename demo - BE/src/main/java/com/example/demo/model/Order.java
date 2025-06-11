@@ -1,8 +1,16 @@
+package com.example.demo.model;
+
 //Columns: id, customer_id, customer_name, address, order_status, order_price, order_cost, work_types, created_at, created_by, company, code
 
+import java.sql.Date;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
-public Class Order{
+public class Order{
 @Id
 @GeneratedValue(strategy= GenerationType.IDENTITY)
 private Long id; 
@@ -22,7 +30,7 @@ private double order_price;
 
 private double order_cost;
 
-private Char[] work_types; 
+private char[] work_types; 
 
 private Date created_at; 
 
@@ -91,11 +99,11 @@ private String code;
         this.order_cost = order_cost;
     }
 
-    public String getWork_types() {
+    public char[] getWork_types() {
         return work_types;
     }
 
-    public void setWork_types(String work_types) {
+    public void setWork_types(char[] work_types) {
         this.work_types = work_types;
     }
 
@@ -130,4 +138,5 @@ private String code;
     public void setCode(String code) {
         this.code = code;
 
+}
 }
