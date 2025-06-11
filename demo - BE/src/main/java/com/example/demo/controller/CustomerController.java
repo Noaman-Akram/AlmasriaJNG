@@ -1,10 +1,5 @@
 package com.example.demo.controller;
 
- 
-
-
-
-
 import com.example.demo.repository.CustomerRepository;
 import java.util.List;
 

@@ -1,0 +1,34 @@
+ActivityLog
+
+Columns: id, created_at, updated_By, table_name, record_id, action_type, action_details
+Customers
+
+Columns: id, name, address, created_at, phone_number, company, paid_total, to_be_paid
+FinanceAccounts
+
+Columns: id, name, amount
+Leads
+
+Columns: id, name, address, created_at, phone_number, company, sale_success
+Materials
+
+Columns: id, name, source, type
+Measurements
+
+Columns: id, material_type, unit, quantity, cost, order_id, material_name, total_cost
+
+OrderDetails
+
+Columns: detail_id, order_id, assigned_to, updated_date, price, notes, total_cost, img_url, due_date, process_stage
+Orders
+
+Columns: id, customer_id, customer_name, address, order_status, order_price, order_cost, work_types, created_at, created_by, company, code
+Transactions
+
+Columns: transaction_id, created_at, order_id, amount, from, method, img_url
+orderStageAssignments
+
+Columns: id, order_stage_id, employee_name, employee_id, work_date, note, is_done, created_at
+orderStages
+
+Columns: id, created_at, stage_name, order_detail_id, planned_start_date, planned_finish_date, employee, notes, actual_start_date, actual_finish_date
